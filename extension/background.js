@@ -1,9 +1,11 @@
 // background.js — minimal service worker
-// Lưu API URL default vào storage khi install
+// Seed API URL default vào storage khi install; migrate localhost → public RPC
+const DEFAULT_API = 'https://blacklist-checker.tipxinhshop.vn';
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(['apiUrl'], (result) => {
-    if (!result.apiUrl) {
-      chrome.storage.sync.set({ apiUrl: 'http://localhost:7070' });
+    if (!result.apiUrl || result.apiUrl.startsWith('http://localhost')) {
+      chrome.storage.sync.set({ apiUrl: DEFAULT_API });
     }
   });
 });
