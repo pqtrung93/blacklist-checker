@@ -138,3 +138,11 @@ blacklist-checker/
 ├── data/                 # SQLite DB (persistent)
 └── docker-compose.yml
 ```
+
+## Cài đặt extension (v0.1.0)
+
+1. Tải `blacklist-checker-ext-v0.1.0.zip` từ [Releases](https://github.com/pqtrung93/blacklist-checker/releases), giải nén
+2. `chrome://extensions` → bật Developer mode → **Load unpacked** → chọn thư mục giải nén
+3. API mặc định: `https://blacklist-checker.tipxinhshop.vn` (đổi được ở tab Cài đặt)
+
+Hoặc tự host API: `docker compose up -d --build` (port 7070), rồi đổi API URL trong extension.
