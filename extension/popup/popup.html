@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blacklist Checker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 340px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      background: #f9fafb;
+      color: #111;
+    }
+
+    header {
+      background: #ef4444;
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 14px; font-weight: 700; }
+    header span { font-size: 11px; opacity: 0.8; }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+      color: #6b7280;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active {
+      color: #ef4444;
+      border-bottom-color: #ef4444;
+      font-weight: 600;
+    }
+
+    .panel { display: none; padding: 14px 16px; }
+    .panel.active { display: block; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 3px;
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    label:first-child { margin-top: 0; }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      font-size: 13px;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #ef4444;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #ef4444; color: #fff; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-success { background: #22c55e; color: #fff; }
+
+    #result {
+      margin-top: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .score-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    .score-bar > div { height: 100%; background: #ef4444; }
+
+    .score-line { font-size: 11px; color: #6b7280; margin-top: 3px; }
+
+    .history-list { font-size: 11px; color: #374151; }
+    .history-item {
+      padding: 5px 0;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item .muted { color: #9ca3af; white-space: nowrap; }
+    .badge-scam { color: #ef4444; font-weight: 700; }
+    .badge-clean { color: #22c55e; font-weight: 700; }
+
+    .result-clean {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      padding: 10px 12px;
+      color: #166534;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .result-match {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+    }
+
+    .result-match-header {
+      background: #ef4444;
+      color: #fff;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .match-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #fca5a5;
+    }
+    .match-item:last-child { border-bottom: none; }
+
+    .match-reason { font-weight: 600; font-size: 12px; }
+    .match-meta { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+    .severity-high   { color: #ef4444; }
+    .severity-medium { color: #f97316; }
+    .severity-low    { color: #eab308; }
+
+    .error-msg {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+      color: #92400e;
+      margin-top: 10px;
+    }
+
+    #add-panel .row { display: flex; gap: 8px; }
+    #add-panel .row > * { flex: 1; }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+    .dot-ok  { background: #22c55e; }
+    .dot-err { background: #ef4444; }
+    .dot-checking { background: #f59e0b; }
+
+    #api-status { font-size: 11px; color: #6b7280; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚠ Blacklist Checker</h1>
+  <span id="header-status">TipXinh Shop</span>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="check">Tra cứu</div>
+  <div class="tab" data-tab="add">Báo cáo</div>
+  <div class="tab" data-tab="history">Lịch sử</div>
+  <div class="tab" data-tab="settings">Cài đặt</div>
+</div>
+
+<!-- TAB: Tra cứu -->
+<div class="panel active" id="check-panel">
+  <label>Số điện thoại</label>
+  <input type="text" id="q-phone" placeholder="0901234567" />
+
+  <label>Tên khách hàng</label>
+  <input type="text" id="q-name" placeholder="Nguyễn Văn A" />
+
+  <label>Địa chỉ</label>
+  <input type="text" id="q-address" placeholder="123 Lê Lợi, Q1, TP.HCM" />
+
+  <label>Email</label>
+  <input type="email" id="q-email" placeholder="khach@email.com" />
+
+  <button class="btn btn-primary" id="btn-check">🔍 Tra cứu</button>
+
+  <div id="result"></div>
+</div>
+
+<!-- TAB: Thêm mới -->
+<div class="panel" id="add-panel">
+  <div class="row">
+    <div>
+      <label>Số điện thoại</label>
+      <input type="text" id="a-phone" placeholder="0901234567" />
+    </div>
+    <div>
+      <label>Email</label>
+      <input type="email" id="a-email" placeholder="email" />
+    </div>
+  </div>
+
+  <label>Tên khách hàng</label>
+  <input type="text" id="a-name" placeholder="Nguyễn Văn A" />
+
+  <label>Địa chỉ</label>
+  <input type="text" id="a-address" placeholder="Địa chỉ" />
+
+  <label>Bình luận</label>
+  <textarea id="a-reason" placeholder="VD: Đặt hàng rồi thoát, chặn ship..."></textarea>
+
+  <label>Đánh giá</label>
+  <select id="a-verdict">
+    <option value="scam" selected>🔴 Scam / tiêu cực</option>
+    <option value="clean">🟢 Bình thường (clean)</option>
+  </select>
+
+  <button class="btn btn-success" id="btn-add">➕ Gửi báo cáo</button>
+  <div id="add-result"></div>
+</div>
+
+<!-- TAB: Lịch sử -->
+<div class="panel" id="history-panel">
+  <label>Lượt tra cứu gần đây</label>
+  <div id="history-list" class="history-list">Đang tải...</div>
+  <label style="margin-top:12px">Báo cáo gần đây</label>
+  <div id="feed-list" class="history-list">Đang tải...</div>
+</div>
+
+<!-- TAB: Cài đặt -->
+<div class="panel" id="settings-panel">
+  <label>API URL</label>
+  <input type="text" id="api-url" placeholder="http://localhost:7070" />
+  <div id="api-status"><span class="status-dot dot-checking"></span>Đang kiểm tra...</div>
+
+  <button class="btn btn-primary" id="btn-save-settings">💾 Lưu cài đặt</button>
+  <button class="btn btn-secondary" id="btn-export" style="margin-top:8px">📥 Export CSV</button>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

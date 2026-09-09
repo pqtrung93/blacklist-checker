@@ -1,0 +1,12 @@
+services:
+  api:
+    build: ./api
+    container_name: blacklist-api
+    ports:
+      - "7070:7070"
+    volumes:
+      - /mnt/blockstore/blacklist-checker/data:/data
+    environment:
+      - PORT=7070
+      - DB_PATH=/data/blacklist.db
+    restart: unless-stopped
