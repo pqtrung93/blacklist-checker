@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Blacklist Checker",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Kiểm tra blacklist khách hàng trên TikTok Shop, Shopee, Sapo",
   "permissions": [
     "storage",

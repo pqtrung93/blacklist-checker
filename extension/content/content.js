@@ -222,9 +222,62 @@
     setTimeout(() => banner.remove(), 5000);
   }
 
+  // ─── Page-wide phone scan (regex) ─────────────────────────────────────────
+
+  // VN mobile only: 0/+84 + [3,5,7,8,9] + 8 digits. Landlines (02xx) ignored.
+  const PHONE_RE = /(?<!\d)(?:\+84|0)[35789]\d{8}\b/g;
+  function scanPhones(root = document.body) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent || parent.closest('.blc-phone, script, style, noscript, textarea')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        PHONE_RE.lastIndex = 0;
+        return PHONE_RE.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      },
+    });
+
+    const targets = [];
+    let n;
+    while ((n = walker.nextNode())) targets.push(n);
+
+    for (const node of targets) {
+      const text = node.nodeValue;
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      let m;
+      PHONE_RE.lastIndex = 0;
+      const found = [];
+      while ((m = PHONE_RE.exec(text))) {
+        frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        const span = document.createElement('span');
+        span.className = 'blc-phone';
+        span.textContent = m[0];
+        frag.appendChild(span);
+        found.push(span);
+        last = m.index + m[0].length;
+      }
+      if (!found.length) continue;
+      frag.appendChild(document.createTextNode(text.slice(last)));
+      node.replaceWith(frag);
+      for (const el of found) checkPhone(el);
+    }
+  }
+
+  async function checkPhone(el) {
+    const result = await checkBlacklist({ phone: el.textContent });
+    if (!result || !result.matched) return;
+    const score = result.score ?? 0;
+    for (const match of result.matches) addBadge(el, match, score);
+    showBanner(result.matches.length, score);
+  }
+
   // ─── Main check ───────────────────────────────────────────────────────────
 
   async function runCheck() {
+    scanPhones(); // ponytail: full-page rescan per mutation batch; throttle per-container if seller pages get heavy
+
     const info = extractOrderInfo();
     if (!info) return;
 

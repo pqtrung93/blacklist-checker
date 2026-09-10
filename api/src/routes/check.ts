@@ -6,7 +6,10 @@ import type { CheckRequest, CheckResult, CheckMatch, BlacklistEntry } from '../t
 const router = Router();
 
 function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, '');
+  const digits = phone.replace(/\D/g, '');
+  // Canonicalize VN mobile to 0xxxxxxxxx: 84-prefix (+84/84) → 0
+  if (digits.startsWith('84')) return '0' + digits.slice(2).replace(/^0/, '');
+  return digits;
 }
 
 function normalizeName(name: string): string {
