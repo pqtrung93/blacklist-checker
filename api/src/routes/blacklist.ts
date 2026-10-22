@@ -97,9 +97,9 @@ router.get('/export', (_req: Request, res: Response) => {
       .join(',')
   );
 
-  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="blacklist.csv"');
-  res.send([header, ...lines].join('\n'));
+  res.send('\ufeff' + [header, ...lines].join('\n'));
 });
 
 export default router;
